@@ -19,3 +19,4 @@ add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
 # Programs
 ##===========
 add_executable(ch0_hello ch0/hello.cpp)
+add_executable(scratch scratch.cpp)
