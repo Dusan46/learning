@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.20)
+project(learning CXX)
+
+# Use C++20, no compiler-specific extras
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Build with debug information so the debugger works
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+# Turn on warnings for every program
+add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
+
+##===========
+# Programs
+##===========
+add_executable(ch0_hello ch0/hello.cpp)
