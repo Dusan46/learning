@@ -20,3 +20,4 @@ add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
 ##===========
 add_executable(ch0_hello ch0/hello.cpp)
 add_executable(scratch scratch.cpp)
+add_executable(ch01L5Q2 ch01/Lesson5_Quiz2.cpp)
