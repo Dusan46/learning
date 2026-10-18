@@ -23,3 +23,8 @@ add_executable(scratch scratch.cpp)
 add_executable(ch01L5Q2 ch01/Lesson5_Quiz2.cpp)
 add_executable(ch01LXQ3 ch01/LessonX_Quiz3.cpp)
 add_executable(ch02L4Q5 ch02/Lesson4_Quiz5.cpp)
+# Multiple files in one program
+add_executable(ch02L8Q1 
+ch02/L8Q1/main.cpp 
+ch02/L8Q1/input.cpp
+)
