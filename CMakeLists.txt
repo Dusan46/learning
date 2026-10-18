@@ -28,3 +28,7 @@ add_executable(ch02L8Q1
 ch02/L8Q1/main.cpp 
 ch02/L8Q1/input.cpp
 )
+add_executable(ch02LxQ1_3
+ch02/LxQ1_3/main.cpp
+ch02/LxQ1_3/io.cpp
+)
