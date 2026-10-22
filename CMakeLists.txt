@@ -32,3 +32,6 @@ add_executable(ch02LxQ1_3
 ch02/LxQ1_3/main.cpp
 ch02/LxQ1_3/io.cpp
 )
+add_executable(ch03LxQ1
+ch03/LxQ1.cpp
+)
