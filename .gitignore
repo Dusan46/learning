@@ -70,3 +70,7 @@ Testing/
 
 .DS_Store
 .pio/
+.scratch.cpp
+
+# Arduino IDE installs third-party libraries here; not my code
+arduino/libraries/
