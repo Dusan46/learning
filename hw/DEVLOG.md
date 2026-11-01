@@ -38,3 +38,36 @@ Entry format: Spec said - Broke - Verified - Learned - Next.
   the start of `update()` so every reader in one loop pass sees them;
   counting/printing belongs in the application, not in `Button`.
 - **Next:** C2a scheduler.
+
+## 2026-11-1 - C2a - Task scheduler
+
+**Spec:** Run 3 LEDs (2, 5, 11.1 Hz), a 1 s heartbeat and the C1 button
+without delay(). One Task struct {last, period, action}, one table, one
+loop over the table. Button polled on every loop() pass.
+
+**Broke:**
+- Timing block copied into every class (Blinker, SerialP) -> same logic
+  three times. Fix: data per task in a struct, logic once in loop().
+- SerialP::begin() declared but not defined -> linker: "undefined reference".
+  Member typo last_period_ms_ -> compiler: "not declared". Linker errors
+  name a function, not a line.
+- Blinker.isOn(): called on the class, not an object.
+- One switchLight() for three rows: an Action has no parameters, so it
+  can't know which row called it -> one function per LED.
+- Writing !slow.isOn() without updating on_ -> LED stuck on.
+  Fix: Blinker::toggle() keeps its own state.
+- `void` in the action slot: a type, not a function.
+- tasks[0].update(): a struct has no functions; the loop does the work.
+- last = now -> drift: lateness accumulates. Fix: last += period.
+- Serial.begin twice: Serial is shared, so it belongs in setup().
+
+**Verified:**
+- 50 presses -> 50 counts while all LEDs blink.
+- LED rates and heartbeat: by eye only.
+
+**Learned:**
+- struct = data, class = data + behaviour.
+- A function pointer stores *which* function to call, as data.
+- for (Task& t : tasks) visits each row; & = the real row, not a copy.
+- .h holds the class, .cpp the member functions; only the .ino gets
+  Arduino.h automatically.
