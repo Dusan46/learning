@@ -137,3 +137,47 @@ descriptions, vector table in the Interrupts chapter. No TimerOne library.
 - avr-libc only gives names (TCCR1B = 0x81, CS12 = 2, ISR() macro).
 
 **Next:** C2 = C2a scheduler + C2b timer.
+
+## 2026-11-01 - C2 - Scheduler + Timer1 tick (C2a + C2b combined)
+
+**Spec:** Keep the C2a task table (LEDs, heartbeat, button on millis()) and
+add a second lane driven by Timer1: CTC, /64, OCR1A = 249 -> 1 kHz tick.
+ISR: g_ticks++ (never reset, a precise ms counter) and a sub-counter that
+sets a flag every 10th tick. loop() clears the flag and runs the 100 Hz
+step. Workbook done-when: 10.00 ms period, jitter, step execution time.
+- 16 MHz / 64 = 250 000 counts/s; 250 counts per tick -> ceiling 249.
+- Two lanes in loop(): soft timing (millis) for LEDs/heartbeat/button,
+  hard timing (Timer1) for the future PI loop.
+
+**Broke:**
+- OCR1A = 25000 -> 10 Hz, not 1 kHz, and ignored ceiling = N - 1.
+- Reset g_ticks every 10 ticks -> it stopped being a ms count. Fix: two
+  counters, g_ticks (never reset) + static uint8_t sub (0..9).
+- Flag never cleared -> after the first 10 ms the lane-2 block ran on every
+  loop() pass, printing a flood of 0s and 1s. Fix: clear it first thing.
+- Read g_ticks twice (print, then prev = g_ticks) -> two different values
+  possible. Fix: one atomic read into a local, use only the local.
+
+**Verified:**
+- Lane 2 prints ticks per step: 10 on every line.
+- Period, jitter, step time: NOT MEASURED YET (see Next).
+
+**Learned:**
+- Torn read: g_ticks is 4 bytes and the AVR loads one byte at a time, so
+  the ISR can fire between loads. At 255 -> 256 (0x000000FF -> 0x00000100)
+  loop() can assemble 0x000001FF = 511: half old, half new value.
+- It's rare (needs the ISR in that window and a carry into the next byte),
+  so testing almost never shows it. That's what makes it dangerous.
+- ATOMIC_BLOCK(ATOMIC_RESTORESTATE) = interrupts off, copy, restore. No tick
+  is lost: a pending interrupt runs right after.
+- Only multi-byte variables shared with an ISR need this. A bool is one
+  byte and can't tear. Variables shared only between loop() functions need
+  neither volatile nor atomic.
+- static local: initialised once, keeps its value between calls; a global
+  only that function can see.
+- A 1 ms tick is a general timebase: other rates can be derived from it.
+
+**Next:**
+- C2 measurement when the logic analyzer arrives: capture pin 9, period,
+  jitter (min/max), high time. If it hasn't arrived by C10, use the
+  micros() version instead.
