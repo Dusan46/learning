@@ -181,3 +181,30 @@ step. Workbook done-when: 10.00 ms period, jitter, step execution time.
 - C2 measurement when the logic analyzer arrives: capture pin 9, period,
   jitter (min/max), high time. If it hasn't arrived by C10, use the
   micros() version instead.
+
+  ## 2026-11-02 - C3a - line reader
+
+**Spec:** Read serial input without blocking. LineReader collects chars
+into a 32-byte buffer; '\r' or '\n' ends a line; too long -> ERR overflow;
+empty lines ignored. Decisions: led n off/on holds until rate; rate in
+half periods, 10..10000 ms; execute() checks n; lower case only, extra
+spaces OK; empty lines ignored.
+
+**Broke:**
+- Lane 2 printed 100 lines/s -> moved tick count into the heartbeat,
+  lane 2 now only runs controlStep().
+- Both NL & CR gave an extra empty line -> ignore empty lines.
+
+**Verified:**
+- Heartbeat: 1000
+- Echo correct with Newline, CR, Both; nothing with No line ending
+  until a line end arrives.
+- 40-char line -> ERR overflow, next line correct.
+- Button: 10 presses -> 10 counts during typing.
+
+**Learned:**
+- NL = '\n' (10), CR = '\r' (13); terminals disagree on which they send.
+- A C string ends with '\0'; 32-byte buffer = 31 chars + terminator.
+- Reset at the start of the next feed(), so the line stays readable.
+
+**Next:** parser (parse(const char*) -> Command), then execute().
