@@ -208,3 +208,26 @@ spaces OK; empty lines ignored.
 - Reset at the start of the next feed(), so the line stays readable.
 
 **Next:** parser (parse(const char*) -> Command), then execute().
+
+## 2026-11-03 - C3b - parser, first draft
+
+**Spec:** parse(const char*) -> Command with no Arduino calls, so it
+can be unit-tested on the Mac. Tokens with strtok, commands with
+strcmp, numbers with strtol + end pointer check.
+
+**Done:**
+- parse() stub wired into lane 3: ERR <reason> or OK.
+- First full parse(): led, rate, status, help, with error reasons.
+
+**Broke (known, not fixed yet):**
+- help/status read an LED index -> "help" gives ERR missing argument.
+- "too many arguments" only checked for help/status -> "led 1 on x" accepted.
+- cli_parser.cpp needs its own <string.h> and <stdlib.h>.
+
+**Learned:**
+- enum class: names stay scoped (CmdType::Led), no silent int conversion.
+- A function returning a struct: store it, then read its fields.
+- strtok writes into the string, so parse a copy; strcmp == 0 means equal.
+
+**Next:** restructure (help/status first, extra-args check at the end),
+makeError() helper, Command cmd{}; then the test table.
