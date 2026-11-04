@@ -1,5 +1,6 @@
 #include "Button.h"
 #include "Blinker.h"
+#include "cli_parser.h"
 #include <util/atomic.h>
 
 volatile uint32_t g_ticks{ 0 };
@@ -171,9 +172,13 @@ void loop() {
       } else if (reader.line()[0] == '\0') {
         // empty line: ignore
       } else {
-        Serial.print(F("got: ["));
-        Serial.print(reader.line());
-        Serial.println(F("]"));
+        Command cmd = parse(reader.line());
+        if (cmd.type == CmdType::Error) {
+          Serial.print(F("ERR "));
+          Serial.println(cmd.error);
+        } else {
+          Serial.println(F("OK"));
+        }
       }
     }
   }
