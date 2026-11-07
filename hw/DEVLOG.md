@@ -231,3 +231,24 @@ strcmp, numbers with strtol + end pointer check.
 
 **Next:** restructure (help/status first, extra-args check at the end),
 makeError() helper, Command cmd{}; then the test table.
+
+## 2026-11-06 - C3c - parser fixed, Mac tests
+
+**Spec:** parse() unit-tested on the Mac with GoogleTest; same .cpp
+compiled for the Mega and for the Mac.
+
+**Broke:**
+- help/status read an LED index -> moved them before the index read.
+- Extra-args check only in led/rate -> "status 3" accepted. One check
+  at the end now.
+- "rate 1": strtol(nullptr) -> would segfault on the Mac.
+- ms max 100000 in a uint16_t (max 65535) -> 70000 wrapped to 4464.
+
+**Verified:** ctest 11/11 passed.
+
+**Learned:**
+- Unit test: fixed input -> parse() -> check fields; GoogleTest gives
+  TEST, EXPECT_EQ, EXPECT_STREQ and main().
+- EXPECT_STREQ for C strings: EXPECT_EQ would compare pointers.
+
+**Next:** PlatformIO + C7.
