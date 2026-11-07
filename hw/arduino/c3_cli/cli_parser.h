@@ -1,7 +1,5 @@
 #pragma once
 #include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
 
 enum class CmdType : uint8_t { Led, Rate, Status, Help, Error };
 
