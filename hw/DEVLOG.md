@@ -252,3 +252,77 @@ compiled for the Mega and for the Mac.
 - EXPECT_STREQ for C strings: EXPECT_EQ would compare pointers.
 
 **Next:** PlatformIO + C7.
+
+## 2026-11-08 - PlatformIO setup + (C7) I2C scanner
+
+### PlatformIO
+**Spec:** New PIO project hw/pio/c07_i2c_scan, env [mega], monitor_speed
+115200, build_src_flags = -Wall -Wextra [-Wshadow]. Blink + banner, non-blocking.
+
+**Broke:**
+- `pio: command not found` -> PIO Core lives in ~/.platformio/penv/bin;
+  added it to PATH in ~/.zshrc. VS Code terminal only picked it up after
+  quitting VS Code with "quit" (terminals inherit PATH at app start).
+- `NotPlatformIOProjectError` -> ran pio one folder too high; pio must run
+  in the folder that contains platformio.ini.
+- Upload: `stk500v2_getsync(): timeout`, then monitor: `Could not exclusively
+  lock port` -> a pio device monitor was still running in another terminal.
+  Only one program can own the serial port at a time. 
+
+**Verified:** build 193 B RAM / 2626 B flash; upload verified by avrdude;
+banner visible in the monitor at 115200.
+
+**Learned:**
+- pio run = build (avr-gcc -> firmware.elf -> firmware.hex in .pio/build/);
+  -t = --target: upload (avrdude), clean, monitor, compiledb; -v shows the
+  real compiler command lines.
+- build_flags also hits the Arduino core; build_src_flags only my src/.
+- .cpp needs #include <Arduino.h> and forward declarations; the IDE hid both.
+
+### C7 - I2C scanner
+**Spec:** Probe 0x08..0x77 with beginTransmission + endTransmission,
+print found addresses, count every return code and print the counts in words.
+Wire.setWireTimeout(3000, true) after Wire.begin().
+
+**Decisions:**
+- Print one line per found address + one summary line per code that occurred.
+- Scan once at boot; reset button rescans.
+- On codes 4/5: keep going and count. A stuck bus = 112 × 3 ms \approx 0.34 s,
+  and "every address failed" is itself the diagnosis.
+- NACK (2) is the normal answer at an empty address, not an error.
+
+**Broke:**
+- Missing #include <Wire.h> -> Wire undefined.
+- wireErrorText first printed the code as hex -> its job is only code -> text
+  (returns const __FlashStringHelper*), the caller prints.
+- `if (v == F("OK"))` never true -> compares pointers, not text. Logic uses
+  the number (code == 0), text is only for us humans.
+- if without braces + else -> "else without previous if". Braces always.
+- Local `uint16_t counts` shadowed the global array -> "invalid types for
+  array subscript". Fixed by moving the array into scanBus() (fresh zeros
+  every scan).
+- printHex2 grew an " ACK" -> one function, one job; counts print in decimal.
+
+**Verified:**
+- Empty bus: NACK 112, nothing else.
+- GY-521 alone: 0x68 ACK, NACK 111 -> MPU-6050 family, AD0 low.
+  (WHO_AM_I on Monday confirms the exact chip.)
+
+**Learned (theory, SLVA704):**
+- Open-drain: devices only pull low; pull-ups pull high. R*C sets the rise
+  time: R too big -> slow edges, R too small -> too much sink current (3 mA).
+- The receiver of a byte drives the ACK. Address byte: always the slave.
+  In a read the master ACKs each byte and NACKs the last one on purpose.
+- Repeated start: START without a STOP before it. Keeps the bus for the
+  write-register-pointer-then-read sequence (endTransmission(false)).
+- Standard 100 kHz (t_r <=> 1000 ns), Fast 400 kHz (<=> 300 ns), Fast+ 1 MHz.
+- beginTransmission() and write() send nothing; the whole transaction
+  happens in endTransmission(), which is why it returns the code.
+
+**Not done (optional):**
+- Step C: SDA held low, with/without timeout -> will be done on Tuesday in C9b.
+- Step D: DS1307 on the same bus, address conflict (C8 is off the schedule).
+- Later (analyzer): ACK/NACK capture labelled START/addr/R/W/ACK/STOP.
+
+**Next:**  C9a writeReg/readRegs with repeated start,
+WHO_AM_I (reg 117 / 0x75), wake via PWR_MGMT_1 (reg 107 / 0x6B), raw burst read.
