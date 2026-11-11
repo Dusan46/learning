@@ -77,3 +77,6 @@ ch07/LxQ1.cpp
 add_executable(ch07LxQ2
 ch07/LxQ2.cpp
 )
+add_executable(ch07LxQ3
+ch07/LxQ3.cpp
+)
