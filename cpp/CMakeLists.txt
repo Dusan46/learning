@@ -89,3 +89,6 @@ ch08/L8Q2.cpp
 add_executable(ch08L8Q3
 ch08/L8Q3.cpp
 )
+add_executable(ch08L8Q4
+ch08/L8Q4.cpp
+)
