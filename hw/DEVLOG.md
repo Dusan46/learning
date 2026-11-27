@@ -342,3 +342,27 @@ Adapter: 12 V, 5 A
 IMU: GY-521, MPU-6050 at 0x68
 
 Phase 2 order: deferred to ~Dec 14–20 (not needed before Jan 4).
+
+### 2026-11-27 · I1 · IMU by registers
+Spec said:
+
+WHO_AM_I (0x75): 0x68 = MPU-6050, 0x70 = MPU-6500 (RM-MPU-6500A)
+PWR_MGMT_1 (0x6B) resets to 0x01 on the 6500 (awake), 0x40 on the 6050 (asleep); code writes 0x01
+ACCEL_CONFIG (0x1C) bits [4:3] = 1 -> +/-4 g, value 0x08
++/-4 g = 8192 LSB/g (PS-MPU-6500A, table 3.2)
+Data at 0x3B: ax, ay, az, temp, gx, gy, gz, 14 bytes, high byte first
+Gyro ZRO tolerance: +/-5 deg/s
+
+Broke:
+
+"MPU-6050 not found" -> the chip is an MPU-6500 (WHO_AM_I 0x70). Adafruit's library only accepts 0x68. 
+The address 0x68 from C7 is the bus address, not the chip ID. Fix: read the registers directly, without the library.
+
+Verified:
+
+|a| = 1.003–1.004 g (spec 1.00 +/- 0.05) 
+Gyro offsets, flat: x 0.66, y 0.64, z 0.21 deg/s (inside +/=5) 
+Temperature: 27.8 deg C
+14-byte read: 1740 us at 100 kHz, 590 us at 400 kHz
+
+Next: I2, 100 Hz binary packets (Sat Nov 28). Use 400 kHz.
