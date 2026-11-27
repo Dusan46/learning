@@ -326,3 +326,19 @@ Wire.setWireTimeout(3000, true) after Wire.begin().
 
 **Next:**  C9a writeReg/readRegs with repeated start,
 WHO_AM_I (reg 117 / 0x75), wake via PWR_MGMT_1 (reg 107 / 0x6B), raw burst read.
+
+### D0 · Nov 26 · inventory
+All parts present.
+
+Motor x2: JGB37-520 hall encoder, 12 V, 178 rpm no-load
+- Gear ratio: 1:56 (assumed from rpm, confirm in M2)
+- Encoder: 11 PPR, 5 V
+- Counts/output rev: 11 × 4 × 56 = 2464
+- Wires: red/white motor +/−, yellow/green enc A/B, blue/black enc 5 V/GND
+- Stall current: ? (M0)
+
+Driver: Cytron MDD10A, 5–30 V, 10 A cont. per channel, PWM + DIR
+Adapter: 12 V, 5 A
+IMU: GY-521, MPU-6050 at 0x68
+
+Phase 2 order: deferred to ~Dec 14–20 (not needed before Jan 4).
