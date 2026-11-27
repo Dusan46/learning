@@ -122,3 +122,6 @@ ch11/L9Q1.cpp
 add_executable(ch11LxQ2
 ch11/LxQ2.cpp
 )
+add_executable(chFLxQ1
+chF/LxQ1.cpp
+)
